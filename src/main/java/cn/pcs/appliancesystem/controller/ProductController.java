@@ -71,4 +71,14 @@ public class ProductController {
         }
         return Result.success(product);
     }
+    
+    @Operation(summary = "搜索产品", description = "根据产品名称和类型ID搜索产品")
+    @GetMapping("/search")
+    public Result<List<Product>> search(
+            @Parameter(description = "产品名称（模糊查询）", example = "冰箱")
+            @RequestParam(required = false) String productName,
+            @Parameter(description = "产品类型ID", example = "1")
+            @RequestParam(required = false) Long typeId) {
+        return Result.success(productService.search(productName, typeId));
+    }
 }

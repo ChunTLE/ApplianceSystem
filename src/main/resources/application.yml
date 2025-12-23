@@ -1,14 +1,19 @@
 server:
-  port: 8080
+    port: 8080
 
 spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/appliance_inventory_db?useSSL=false&serverTimezone=Asia/Shanghai
-    username: root
-    password: 1234
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    datasource:
+        url: jdbc:mysql://localhost:3306/appliance_inventory_db?useSSL=false&serverTimezone=Asia/Shanghai
+        username: root
+        password: 1234
+        driver-class-name: com.mysql.cj.jdbc.Driver
+
+# JWT配置
+jwt:
+    secret: AppliancesSystemSecretKey2025ForJWTTokenGeneration
+    expiration: 300000 # Token过期时间（毫秒），5分钟（300000ms = 5分钟）
 
 mybatis-plus:
-  configuration:
-    map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    configuration:
+        map-underscore-to-camel-case: true
+        log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

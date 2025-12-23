@@ -1,6 +1,7 @@
 package cn.pcs.appliancesystem.exception;
 
 import cn.pcs.appliancesystem.entity.Result;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
@@ -27,10 +28,26 @@ public class GlobalExceptionHandler {
      * 处理业务异常
      */
     @ExceptionHandler(BusinessException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Result<?> handleBusinessException(BusinessException e) {
+    public Result<?> handleBusinessException(BusinessException e, HttpServletResponse response) {
         log.warn("业务异常: {}", e.getMessage());
+        // 如果是401错误，返回HTTP 401状态码
+        if (e.getCode() != null && e.getCode() == 401) {
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            return new Result<>(401, e.getMessage(), null);
+        }
+        // 其他业务异常返回400
+        response.setStatus(HttpStatus.BAD_REQUEST.value());
         return new Result<>(e.getCode(), e.getMessage(), null);
+    }
+
+    /**
+     * 处理Token过期异常
+     */
+    @ExceptionHandler(TokenExpiredException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public Result<?> handleTokenExpiredException(TokenExpiredException e) {
+        log.warn("Token过期: {}", e.getMessage());
+        return new Result<>(401, e.getMessage(), null);
     }
 
     /**
@@ -65,7 +82,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result<?> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
-        String errorMessage = String.format("参数 '%s' 类型不匹配，期望类型: %s", 
+        String errorMessage = String.format("参数 '%s' 类型不匹配，期望类型: %s",
                 e.getName(), e.getRequiredType() != null ? e.getRequiredType().getSimpleName() : "未知");
         log.warn("参数类型不匹配: {}", errorMessage);
         return Result.error(errorMessage);
@@ -131,4 +148,3 @@ public class GlobalExceptionHandler {
         return Result.error("系统内部错误，请联系管理员");
     }
 }
-

@@ -1,11 +1,13 @@
 package cn.pcs.appliancesystem.util;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -21,12 +23,13 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
-    // JWT密钥（实际项目中应该从配置文件读取）
-    // 注意：密钥长度必须至少32字节（256位）用于HS256算法
-    private static final String SECRET_KEY = "AppliancesSystemSecretKey2025ForJWTTokenGeneration";
+    // JWT密钥（从配置文件读取）
+    @Value("${jwt.secret:AppliancesSystemSecretKey2025ForJWTTokenGeneration}")
+    private String secretKey;
 
-    // 令牌过期时间（24小时）
-    private static final long EXPIRATION_TIME = 24 * 60 * 60 * 1000;
+    // 令牌过期时间（从配置文件读取，默认5分钟）
+    @Value("${jwt.expiration:300000}")
+    private long expirationTime;
 
     // 密钥对象（延迟初始化）
     private SecretKey key;
@@ -37,7 +40,7 @@ public class JwtUtil {
     @PostConstruct
     public void init() {
         // 确保密钥长度至少32字节
-        byte[] keyBytes = SECRET_KEY.getBytes(StandardCharsets.UTF_8);
+        byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
         if (keyBytes.length < 32) {
             // 如果密钥长度不足，进行填充
             byte[] paddedKey = new byte[32];
@@ -72,7 +75,7 @@ public class JwtUtil {
                 .setClaims(claims)
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -186,9 +189,28 @@ public class JwtUtil {
                     .setSigningKey(key)
                     .build()
                     .parseClaimsJws(token);
+            // 再次检查是否过期
             return !isTokenExpired(token);
-        } catch (JwtException | IllegalArgumentException e) {
+        } catch (ExpiredJwtException e) {
+            // Token已过期
             return false;
+        } catch (JwtException | IllegalArgumentException e) {
+            // Token格式错误或其他异常
+            return false;
+        }
+    }
+
+    /**
+     * 检查Token是否过期（不抛出异常）
+     * 
+     * @param token JWT令牌
+     * @return true-已过期，false-未过期
+     */
+    public boolean isTokenExpiredSafe(String token) {
+        try {
+            return isTokenExpired(token);
+        } catch (Exception e) {
+            return true;
         }
     }
 

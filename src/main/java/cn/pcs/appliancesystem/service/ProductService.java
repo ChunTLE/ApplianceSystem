@@ -9,6 +9,8 @@ public interface ProductService {
     List<Product> listAll();
 
     Product getById(Long id);
+    
+    List<Product> search(String productName, Long typeId);
 
     void increaseStock(Long productId, Integer quantity);
 

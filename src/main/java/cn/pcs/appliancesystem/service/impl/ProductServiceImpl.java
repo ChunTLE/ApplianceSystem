@@ -4,6 +4,7 @@ import cn.pcs.appliancesystem.entity.Product;
 import cn.pcs.appliancesystem.exception.BusinessException;
 import cn.pcs.appliancesystem.mapper.ProductMapper;
 import cn.pcs.appliancesystem.service.ProductService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,18 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Product getById(Long id) {
         return productMapper.selectById(id);
+    }
+    
+    @Override
+    public List<Product> search(String productName, Long typeId) {
+        LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<>();
+        if (productName != null && !productName.trim().isEmpty()) {
+            wrapper.like(Product::getProductName, productName);
+        }
+        if (typeId != null) {
+            wrapper.eq(Product::getTypeId, typeId);
+        }
+        return productMapper.selectList(wrapper);
     }
 
     @Override

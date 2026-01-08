@@ -2,12 +2,15 @@ package cn.pcs.appliancesystem.service.impl;
 
 import cn.pcs.appliancesystem.entity.LoginRequest;
 import cn.pcs.appliancesystem.entity.LoginResponse;
+import cn.pcs.appliancesystem.entity.RegisterRequest;
+import cn.pcs.appliancesystem.entity.SysUser;
 import cn.pcs.appliancesystem.entity.UserWithRole;
 import cn.pcs.appliancesystem.exception.BusinessException;
 import cn.pcs.appliancesystem.mapper.SysUserMapper;
 import cn.pcs.appliancesystem.service.AuthService;
 import cn.pcs.appliancesystem.util.JwtUtil;
 import cn.pcs.appliancesystem.util.PasswordUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -86,5 +89,48 @@ public class AuthServiceImpl implements AuthService {
         if (roleId == 3L)
             return "销售人员";
         return "用户";
+    }
+
+    @Override
+    public void register(RegisterRequest request) {
+        // 验证必填字段
+        if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
+            throw new BusinessException("用户名不能为空");
+        }
+        if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+            throw new BusinessException("密码不能为空");
+        }
+        if (request.getRoleId() == null) {
+            throw new BusinessException("角色ID不能为空");
+        }
+
+        // 只能注册库存人员（roleId=2）或销售人员（roleId=3）
+        if (request.getRoleId() != 2L && request.getRoleId() != 3L) {
+            throw new BusinessException("只能注册库存人员或销售人员账号");
+        }
+
+        // 检查用户名是否已存在
+        SysUser existUser = sysUserMapper.selectOne(
+                new LambdaQueryWrapper<SysUser>()
+                        .eq(SysUser::getUsername, request.getUsername()));
+        if (existUser != null) {
+            throw new BusinessException("用户名已存在");
+        }
+
+        // 验证密码长度（至少6位）
+        if (request.getPassword().length() < 6) {
+            throw new BusinessException("密码长度至少为6位");
+        }
+
+        // 创建新用户
+        String encodedPassword = passwordUtil.encode(request.getPassword());
+        SysUser newUser = SysUser.builder()
+                .username(request.getUsername())
+                .password(encodedPassword)
+                .roleId(request.getRoleId())
+                .status(1) // 默认启用
+                .build();
+
+        sysUserMapper.insert(newUser);
     }
 }

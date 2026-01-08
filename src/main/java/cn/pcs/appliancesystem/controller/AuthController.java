@@ -2,6 +2,7 @@ package cn.pcs.appliancesystem.controller;
 
 import cn.pcs.appliancesystem.entity.LoginRequest;
 import cn.pcs.appliancesystem.entity.LoginResponse;
+import cn.pcs.appliancesystem.entity.RegisterRequest;
 import cn.pcs.appliancesystem.entity.Result;
 import cn.pcs.appliancesystem.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,6 +23,13 @@ public class AuthController {
     public Result<LoginResponse> login(@RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request);
         return Result.success(response);
+    }
+    
+    @Operation(summary = "用户注册", description = "用户注册（只能注册库存人员和销售人员）")
+    @PostMapping("/register")
+    public Result<?> register(@RequestBody RegisterRequest request) {
+        authService.register(request);
+        return Result.success("注册成功");
     }
 }
 

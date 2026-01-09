@@ -1,5 +1,7 @@
 package cn.pcs.appliancesystem.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -20,7 +22,7 @@ import java.time.LocalDateTime;
 public class Product {
 
     @Schema(description = "产品ID", example = "1")
-    @TableId
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     @Schema(description = "产品名称", example = "海尔冰箱")
@@ -28,6 +30,10 @@ public class Product {
 
     @Schema(description = "产品类型ID", example = "1")
     private Long typeId;
+
+    @Schema(description = "产品类型名称", example = "冰箱")
+    @TableField(exist = false)  // 表示该字段不是数据库字段
+    private String typeName;
 
     @Schema(description = "产品价格", example = "2999.00")
     private BigDecimal price;

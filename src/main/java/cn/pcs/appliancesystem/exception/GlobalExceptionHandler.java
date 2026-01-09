@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.stream.Collectors;
 
 /**
@@ -95,6 +96,24 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Result<?> handleDataAccessException(DataAccessException e) {
         log.error("数据库访问异常", e);
+        
+        // 检查是否是外键约束异常
+        Throwable cause = e.getCause();
+        if (cause instanceof SQLIntegrityConstraintViolationException) {
+            String message = cause.getMessage();
+            if (message != null && message.contains("foreign key constraint")) {
+                if (message.contains("fk_sale_user") || message.contains("salesman_id")) {
+                    return Result.error("无法删除该用户，该用户存在销售记录，请先删除相关销售记录");
+                } else if (message.contains("fk_stockin_user") || message.contains("stock_in")) {
+                    return Result.error("无法删除该用户，该用户存在入库记录，请先删除相关入库记录");
+                } else if (message.contains("fk_stockout_user") || message.contains("stock_out")) {
+                    return Result.error("无法删除该用户，该用户存在出库记录，请先删除相关出库记录");
+                } else {
+                    return Result.error("无法删除该数据，存在关联数据，请先删除相关记录");
+                }
+            }
+        }
+        
         return Result.error("数据库操作失败，请稍后重试");
     }
 
@@ -105,6 +124,21 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Result<?> handleSQLException(SQLException e) {
         log.error("SQL异常", e);
+        // 检查是否是外键约束异常
+        if (e instanceof SQLIntegrityConstraintViolationException) {
+            String message = e.getMessage();
+            if (message != null && message.contains("foreign key constraint")) {
+                if (message.contains("fk_sale_user") || message.contains("salesman_id")) {
+                    return Result.error("无法删除该用户，该用户存在销售记录，请先删除相关销售记录");
+                } else if (message.contains("fk_stockin_user") || message.contains("stock_in")) {
+                    return Result.error("无法删除该用户，该用户存在入库记录，请先删除相关入库记录");
+                } else if (message.contains("fk_stockout_user") || message.contains("stock_out")) {
+                    return Result.error("无法删除该用户，该用户存在出库记录，请先删除相关出库记录");
+                } else {
+                    return Result.error("无法删除该数据，存在关联数据，请先删除相关记录");
+                }
+            }
+        }
         return Result.error("数据库操作失败，请稍后重试");
     }
 

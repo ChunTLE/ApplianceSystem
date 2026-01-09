@@ -1,7 +1,13 @@
 package cn.pcs.appliancesystem.controller;
 
 import cn.pcs.appliancesystem.entity.Result;
+import cn.pcs.appliancesystem.entity.Sale;
+import cn.pcs.appliancesystem.entity.StockIn;
+import cn.pcs.appliancesystem.entity.StockOut;
 import cn.pcs.appliancesystem.entity.SysUser;
+import cn.pcs.appliancesystem.mapper.SaleMapper;
+import cn.pcs.appliancesystem.mapper.StockInMapper;
+import cn.pcs.appliancesystem.mapper.StockOutMapper;
 import cn.pcs.appliancesystem.mapper.SysUserMapper;
 import cn.pcs.appliancesystem.exception.BusinessException;
 import cn.pcs.appliancesystem.util.PasswordUtil;
@@ -21,6 +27,9 @@ public class UserController {
 
     private final SysUserMapper sysUserMapper;
     private final PasswordUtil passwordUtil;
+    private final SaleMapper saleMapper;
+    private final StockInMapper stockInMapper;
+    private final StockOutMapper stockOutMapper;
 
     @Operation(summary = "查询所有用户")
     @GetMapping("/list")
@@ -99,10 +108,36 @@ public class UserController {
     @Operation(summary = "删除用户")
     @DeleteMapping("/{id}")
     public Result<?> delete(@PathVariable Long id) {
+        if (id == null) {
+            throw new BusinessException("用户ID不能为空");
+        }
+        
         SysUser user = sysUserMapper.selectById(id);
         if (user == null) {
-            throw new BusinessException("用户不存在");
+            throw new BusinessException("用户不存在，ID: " + id);
         }
+        
+        // 检查是否有销售记录
+        Long saleCount = saleMapper.selectCount(
+                new LambdaQueryWrapper<Sale>().eq(Sale::getSalesmanId, id));
+        if (saleCount > 0) {
+            throw new BusinessException("无法删除该用户，该用户存在 " + saleCount + " 条销售记录，请先删除相关销售记录");
+        }
+        
+        // 检查是否有入库记录
+        Long stockInCount = stockInMapper.selectCount(
+                new LambdaQueryWrapper<StockIn>().eq(StockIn::getOperatorId, id));
+        if (stockInCount > 0) {
+            throw new BusinessException("无法删除该用户，该用户存在 " + stockInCount + " 条入库记录，请先删除相关入库记录");
+        }
+        
+        // 检查是否有出库记录
+        Long stockOutCount = stockOutMapper.selectCount(
+                new LambdaQueryWrapper<StockOut>().eq(StockOut::getOperatorId, id));
+        if (stockOutCount > 0) {
+            throw new BusinessException("无法删除该用户，该用户存在 " + stockOutCount + " 条出库记录，请先删除相关出库记录");
+        }
+        
         sysUserMapper.deleteById(id);
         return Result.success();
     }

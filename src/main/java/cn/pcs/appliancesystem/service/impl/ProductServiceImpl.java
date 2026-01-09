@@ -1,31 +1,82 @@
 package cn.pcs.appliancesystem.service.impl;
 
 import cn.pcs.appliancesystem.entity.Product;
+import cn.pcs.appliancesystem.entity.ProductType;
 import cn.pcs.appliancesystem.exception.BusinessException;
 import cn.pcs.appliancesystem.mapper.ProductMapper;
+import cn.pcs.appliancesystem.mapper.ProductTypeMapper;
 import cn.pcs.appliancesystem.service.ProductService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
     private final ProductMapper productMapper;
+    private final ProductTypeMapper productTypeMapper;
 
     @Override
     public List<Product> listAll() {
-        return productMapper.selectList(null);
+        List<Product> products = productMapper.selectList(null);
+        // 填充类型名称
+        fillTypeName(products);
+        return products;
+    }
+
+    /**
+     * 填充产品类型名称
+     */
+    private void fillTypeName(List<Product> products) {
+        if (products == null || products.isEmpty()) {
+            return;
+        }
+
+        // 获取所有类型ID（过滤掉null值）
+        List<Long> typeIds = products.stream()
+                .map(Product::getTypeId)
+                .filter(id -> id != null)
+                .distinct()
+                .collect(Collectors.toList());
+
+        if (typeIds.isEmpty()) {
+            log.warn("产品列表中没有有效的类型ID");
+            return;
+        }
+
+        // 批量查询类型信息
+        LambdaQueryWrapper<ProductType> typeWrapper = new LambdaQueryWrapper<>();
+        typeWrapper.in(ProductType::getId, typeIds);
+        List<ProductType> types = productTypeMapper.selectList(typeWrapper);
+        log.debug("查询到的类型列表: {}", types);
+        Map<Long, String> typeMap = types.stream()
+                .collect(Collectors.toMap(ProductType::getId, ProductType::getTypeName));
+        log.debug("类型映射表: {}", typeMap);
+
+        // 填充类型名称
+        products.forEach(product -> {
+            String typeName = typeMap.get(product.getTypeId());
+            log.debug("产品ID: {}, 类型ID: {}, 类型名称: {}", product.getId(), product.getTypeId(), typeName);
+            product.setTypeName(typeName);
+        });
     }
 
     @Override
     public Product getById(Long id) {
-        return productMapper.selectById(id);
+        Product product = productMapper.selectById(id);
+        if (product != null) {
+            fillTypeName(List.of(product));
+        }
+        return product;
     }
-    
+
     @Override
     public List<Product> search(String productName, Long typeId) {
         LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<>();
@@ -35,7 +86,10 @@ public class ProductServiceImpl implements ProductService {
         if (typeId != null) {
             wrapper.eq(Product::getTypeId, typeId);
         }
-        return productMapper.selectList(wrapper);
+        List<Product> products = productMapper.selectList(wrapper);
+        // 填充类型名称
+        fillTypeName(products);
+        return products;
     }
 
     @Override

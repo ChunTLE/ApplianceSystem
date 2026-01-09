@@ -51,47 +51,24 @@ public class StatisticsServiceImpl implements StatisticsService {
                 .collect(Collectors.toList());
         
         // 批量查询产品信息
-        Map<Long, String> productNamesMap;
+        Map<Long, String> productNamesMap = new HashMap<>();
         if (!productIds.isEmpty()) {
             List<cn.pcs.appliancesystem.entity.Product> products = productMapper.selectBatchIds(productIds);
             productNamesMap = products.stream()
                     .collect(Collectors.toMap(cn.pcs.appliancesystem.entity.Product::getId, 
                             cn.pcs.appliancesystem.entity.Product::getProductName));
-        } else {
-            productNamesMap = new HashMap<>();
         }
-
-        // 按日期分组统计
-        Map<String, List<cn.pcs.appliancesystem.entity.StockIn>> grouped = list.stream()
-                .collect(Collectors.groupingBy(item -> 
-                    item.getInTime() != null ? item.getInTime().toLocalDate().format(DateTimeFormatter.ISO_DATE) : "未知"));
         
+        // 返回每条单独的入库记录，而不是按日期聚合
         List<StatisticsVO> result = new ArrayList<>();
-        for (Map.Entry<String, List<cn.pcs.appliancesystem.entity.StockIn>> entry : grouped.entrySet()) {
-            int totalCount = entry.getValue().stream()
-                    .mapToInt(cn.pcs.appliancesystem.entity.StockIn::getQuantity)
-                    .sum();
-            
-            // 计算总金额
-            BigDecimal totalAmount = BigDecimal.ZERO;
-            for (cn.pcs.appliancesystem.entity.StockIn stockIn : entry.getValue()) {
-                String productName = productNamesMap.get(stockIn.getProductId());
-                if (productName != null) {
-                    // 假设入库记录中包含单价，这里暂时设置为0
-                    totalAmount = totalAmount.add(BigDecimal.ZERO);
-                }
-            }
-            
-            String firstProductName = entry.getValue().stream()
-                .findFirst()
-                .map(item -> productNamesMap.getOrDefault(item.getProductId(), "未知产品"))
-                .orElse("未知产品");
+        for (cn.pcs.appliancesystem.entity.StockIn stockIn : list) {
+            String productName = productNamesMap.getOrDefault(stockIn.getProductId(), "未知产品");
             
             result.add(StatisticsVO.builder()
-                    .label(entry.getKey())
-                    .count(totalCount)
-                    .totalAmount(totalAmount)
-                    .productName(firstProductName)
+                    .label(stockIn.getInTime() != null ? stockIn.getInTime().toLocalDate().format(DateTimeFormatter.ISO_DATE) : "未知日期")
+                    .count(stockIn.getQuantity())
+                    .totalAmount(BigDecimal.ZERO) // 入库记录中没有单价，总金额设为0
+                    .productName(productName)
                     .build());
         }
         
@@ -117,36 +94,24 @@ public class StatisticsServiceImpl implements StatisticsService {
                 .collect(Collectors.toList());
         
         // 批量查询产品信息
-        Map<Long, String> productNamesMap;
+        Map<Long, String> productNamesMap = new HashMap<>();
         if (!productIds.isEmpty()) {
             List<cn.pcs.appliancesystem.entity.Product> products = productMapper.selectBatchIds(productIds);
             productNamesMap = products.stream()
                     .collect(Collectors.toMap(cn.pcs.appliancesystem.entity.Product::getId, 
                             cn.pcs.appliancesystem.entity.Product::getProductName));
-        } else {
-            productNamesMap = new HashMap<>();
         }
-
-        Map<String, List<cn.pcs.appliancesystem.entity.StockOut>> grouped = list.stream()
-                .collect(Collectors.groupingBy(item -> 
-                    item.getOutTime() != null ? item.getOutTime().toLocalDate().format(DateTimeFormatter.ISO_DATE) : "未知"));
         
+        // 返回每条单独的出库记录，而不是按日期聚合
         List<StatisticsVO> result = new ArrayList<>();
-        for (Map.Entry<String, List<cn.pcs.appliancesystem.entity.StockOut>> entry : grouped.entrySet()) {
-            int totalCount = entry.getValue().stream()
-                    .mapToInt(cn.pcs.appliancesystem.entity.StockOut::getQuantity)
-                    .sum();
-            
-            String firstProductName = entry.getValue().stream()
-                .findFirst()
-                .map(item -> productNamesMap.getOrDefault(item.getProductId(), "未知产品"))
-                .orElse("未知产品");
+        for (cn.pcs.appliancesystem.entity.StockOut stockOut : list) {
+            String productName = productNamesMap.getOrDefault(stockOut.getProductId(), "未知产品");
             
             result.add(StatisticsVO.builder()
-                    .label(entry.getKey())
-                    .count(totalCount)
-                    .totalAmount(BigDecimal.ZERO)
-                    .productName(firstProductName)
+                    .label(stockOut.getOutTime() != null ? stockOut.getOutTime().toLocalDate().format(DateTimeFormatter.ISO_DATE) : "未知日期")
+                    .count(stockOut.getQuantity())
+                    .totalAmount(BigDecimal.ZERO) // 出库记录中没有单价，总金额设为0
+                    .productName(productName)
                     .build());
         }
         
@@ -172,39 +137,24 @@ public class StatisticsServiceImpl implements StatisticsService {
                 .collect(Collectors.toList());
         
         // 批量查询产品信息
-        Map<Long, String> productNamesMap;
+        Map<Long, String> productNamesMap = new HashMap<>();
         if (!productIds.isEmpty()) {
             List<cn.pcs.appliancesystem.entity.Product> products = productMapper.selectBatchIds(productIds);
             productNamesMap = products.stream()
                     .collect(Collectors.toMap(cn.pcs.appliancesystem.entity.Product::getId, 
                             cn.pcs.appliancesystem.entity.Product::getProductName));
-        } else {
-            productNamesMap = new HashMap<>();
         }
-
-        Map<String, List<cn.pcs.appliancesystem.entity.Sale>> grouped = list.stream()
-                .collect(Collectors.groupingBy(item -> 
-                    item.getSaleTime() != null ? item.getSaleTime().toLocalDate().format(DateTimeFormatter.ISO_DATE) : "未知"));
         
+        // 返回每条单独的销售记录，包含产品名称、时间、销售数量和金额
         List<StatisticsVO> result = new ArrayList<>();
-        for (Map.Entry<String, List<cn.pcs.appliancesystem.entity.Sale>> entry : grouped.entrySet()) {
-            int totalCount = entry.getValue().stream()
-                    .mapToInt(cn.pcs.appliancesystem.entity.Sale::getQuantity)
-                    .sum();
-            BigDecimal totalAmount = entry.getValue().stream()
-                    .map(cn.pcs.appliancesystem.entity.Sale::getTotalPrice)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            
-            String firstProductName = entry.getValue().stream()
-                .findFirst()
-                .map(item -> productNamesMap.getOrDefault(item.getProductId(), "未知产品"))
-                .orElse("未知产品");
+        for (cn.pcs.appliancesystem.entity.Sale sale : list) {
+            String productName = productNamesMap.getOrDefault(sale.getProductId(), "未知产品");
             
             result.add(StatisticsVO.builder()
-                    .label(entry.getKey())
-                    .count(totalCount)
-                    .totalAmount(totalAmount)
-                    .productName(firstProductName)
+                    .label(sale.getSaleTime() != null ? sale.getSaleTime().toLocalDate().format(DateTimeFormatter.ISO_DATE) : "未知日期")
+                    .count(sale.getQuantity())
+                    .totalAmount(sale.getTotalPrice())
+                    .productName(productName)
                     .build());
         }
         
@@ -238,23 +188,15 @@ public class StatisticsServiceImpl implements StatisticsService {
                             cn.pcs.appliancesystem.entity.Product::getProductName));
         }
         
-        Map<Long, List<cn.pcs.appliancesystem.entity.Sale>> grouped = list.stream()
-                .collect(Collectors.groupingBy(cn.pcs.appliancesystem.entity.Sale::getProductId));
-        
+        // 返回每条单独的销售记录，包含产品名称、时间、销售数量和金额
         List<StatisticsVO> result = new ArrayList<>();
-        for (Map.Entry<Long, List<cn.pcs.appliancesystem.entity.Sale>> entry : grouped.entrySet()) {
-            int totalCount = entry.getValue().stream()
-                    .mapToInt(cn.pcs.appliancesystem.entity.Sale::getQuantity)
-                    .sum();
-            BigDecimal totalAmount = entry.getValue().stream()
-                    .map(cn.pcs.appliancesystem.entity.Sale::getTotalPrice)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        for (cn.pcs.appliancesystem.entity.Sale sale : list) {
+            String productName = productNamesMap.getOrDefault(sale.getProductId(), "未知产品");
             
-            String productName = productNamesMap.getOrDefault(entry.getKey(), "未知产品");
             result.add(StatisticsVO.builder()
-                    .label(productName)
-                    .count(totalCount)
-                    .totalAmount(totalAmount)
+                    .label(sale.getSaleTime() != null ? sale.getSaleTime().toLocalDate().format(DateTimeFormatter.ISO_DATE) : "未知日期")
+                    .count(sale.getQuantity())
+                    .totalAmount(sale.getTotalPrice())
                     .productName(productName)
                     .build());
         }

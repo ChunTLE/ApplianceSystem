@@ -81,4 +81,33 @@ public class ProductController {
             @RequestParam(required = false) Long typeId) {
         return Result.success(productService.search(productName, typeId));
     }
+
+    @Operation(summary = "更新产品", description = "根据产品ID更新产品信息")
+    @PutMapping("/{id}")
+    public Result<String> update(
+            @Parameter(description = "产品ID", required = true, example = "1")
+            @PathVariable Long id,
+            @RequestBody Product product) {
+        // 设置产品ID，防止路径参数与请求体中的ID不一致
+        product.setId(id);
+        boolean success = productService.updateProduct(product);
+        if (success) {
+            return Result.success("产品更新成功");
+        } else {
+            return Result.error("产品不存在或更新失败");
+        }
+    }
+
+    @Operation(summary = "删除产品", description = "根据产品ID删除产品")
+    @DeleteMapping("/{id}")
+    public Result<String> delete(
+            @Parameter(description = "产品ID", required = true, example = "1")
+            @PathVariable Long id) {
+        boolean success = productService.deleteProduct(id);
+        if (success) {
+            return Result.success("产品删除成功");
+        } else {
+            return Result.error("产品不存在或删除失败");
+        }
+    }
 }

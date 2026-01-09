@@ -120,4 +120,28 @@ public class ProductServiceImpl implements ProductService {
         product.setStock(product.getStock() - quantity);
         productMapper.updateById(product);
     }
+
+    @Override
+    public boolean updateProduct(Product product) {
+        // 检查产品是否存在
+        Product existingProduct = productMapper.selectById(product.getId());
+        if (existingProduct == null) {
+            return false;
+        }
+        
+        // 更新产品信息
+        return productMapper.updateById(product) > 0;
+    }
+
+    @Override
+    public boolean deleteProduct(Long id) {
+        // 检查产品是否存在
+        Product existingProduct = productMapper.selectById(id);
+        if (existingProduct == null) {
+            return false;
+        }
+        
+        // 删除产品
+        return productMapper.deleteById(id) > 0;
+    }
 }

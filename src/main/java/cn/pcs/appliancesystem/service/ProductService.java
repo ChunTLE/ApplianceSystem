@@ -15,4 +15,8 @@ public interface ProductService {
     void increaseStock(Long productId, Integer quantity);
 
     void decreaseStock(Long productId, Integer quantity);
+
+    boolean updateProduct(Product product);
+
+    boolean deleteProduct(Long id);
 }

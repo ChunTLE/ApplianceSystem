@@ -11,7 +11,7 @@ spring:
 # JWT配置
 jwt:
     secret: AppliancesSystemSecretKey2025ForJWTTokenGeneration
-    expiration: 300000 # Token过期时间（毫秒），5分钟（300000ms = 5分钟）
+    expiration: 1800000 # Token过期时间（毫秒），30分钟
 
 mybatis-plus:
     configuration:

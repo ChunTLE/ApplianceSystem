@@ -19,4 +19,6 @@ public interface ProductService {
     boolean updateProduct(Product product);
 
     boolean deleteProduct(Long id);
+
+    boolean createProduct(Product product);
 }

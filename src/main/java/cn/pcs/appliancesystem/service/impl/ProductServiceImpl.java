@@ -144,4 +144,23 @@ public class ProductServiceImpl implements ProductService {
         // 删除产品
         return productMapper.deleteById(id) > 0;
     }
+
+    @Override
+    public boolean createProduct(Product product) {
+        // 设置创建时间
+        product.setCreateTime(java.time.LocalDateTime.now());
+        
+        // 新产品默认上架状态
+        if (product.getStatus() == null) {
+            product.setStatus(1);
+        }
+        
+        // 如果库存未设置，默认为0
+        if (product.getStock() == null) {
+            product.setStock(0);
+        }
+        
+        // 插入产品并返回是否成功
+        return productMapper.insert(product) > 0;
+    }
 }

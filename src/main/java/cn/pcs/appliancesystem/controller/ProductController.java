@@ -110,4 +110,15 @@ public class ProductController {
             return Result.error("产品不存在或删除失败");
         }
     }
+
+    @Operation(summary = "创建产品", description = "创建新产品")
+    @PostMapping
+    public Result<String> create(@RequestBody Product product) {
+        boolean success = productService.createProduct(product);
+        if (success) {
+            return Result.success("产品创建成功");
+        } else {
+            return Result.error("产品创建失败");
+        }
+    }
 }

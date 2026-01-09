@@ -22,5 +22,8 @@ public class StatisticsVO {
     
     @Schema(description = "总金额")
     private BigDecimal totalAmount;
+    
+    @Schema(description = "产品名称")
+    private String productName;
 }
 

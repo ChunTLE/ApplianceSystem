@@ -1,6 +1,8 @@
 package cn.pcs.appliancesystem.controller;
 
 import cn.pcs.appliancesystem.entity.Result;
+import cn.pcs.appliancesystem.entity.StockInRecordVO;
+import cn.pcs.appliancesystem.entity.StockOutRecordVO;
 import cn.pcs.appliancesystem.service.StockService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -11,6 +13,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "库存管理", description = "产品入库、出库操作接口")
 @RestController
@@ -80,5 +84,45 @@ public class StockController {
             @RequestParam Long operatorId) {
         stockService.stockOut(productId, quantity, operatorId);
         return Result.success();
+    }
+
+    /**
+     * 获取入库记录列表
+     */
+    @Operation(
+            summary = "获取入库记录列表",
+            description = "获取所有入库记录，包括产品名称、入库数量、操作人、时间等信息"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "查询成功",
+                    content = @Content(schema = @Schema(implementation = Result.class))
+            )
+    })
+    @GetMapping("/in-records")
+    public Result<List<StockInRecordVO>> getStockInRecords() {
+        List<StockInRecordVO> records = stockService.getStockInRecords();
+        return Result.success(records);
+    }
+
+    /**
+     * 获取出库记录列表
+     */
+    @Operation(
+            summary = "获取出库记录列表",
+            description = "获取所有出库记录，包括产品名称、出库数量、操作人、时间等信息"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "查询成功",
+                    content = @Content(schema = @Schema(implementation = Result.class))
+            )
+    })
+    @GetMapping("/out-records")
+    public Result<List<StockOutRecordVO>> getStockOutRecords() {
+        List<StockOutRecordVO> records = stockService.getStockOutRecords();
+        return Result.success(records);
     }
 }

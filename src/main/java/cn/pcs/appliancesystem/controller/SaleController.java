@@ -1,6 +1,7 @@
 package cn.pcs.appliancesystem.controller;
 
 import cn.pcs.appliancesystem.entity.Result;
+import cn.pcs.appliancesystem.entity.SaleRecordVO;
 import cn.pcs.appliancesystem.service.SaleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -11,6 +12,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "销售管理", description = "产品销售记录和管理接口")
 @RestController
@@ -49,5 +52,25 @@ public class SaleController {
             @RequestParam Long salesmanId) {
         saleService.sell(productId, quantity, salesmanId);
         return Result.success();
+    }
+
+    /**
+     * 获取销售记录列表
+     */
+    @Operation(
+            summary = "获取销售记录列表",
+            description = "获取所有销售记录，包括产品名称、数量、总价格、销售员等信息"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "查询成功",
+                    content = @Content(schema = @Schema(implementation = Result.class))
+            )
+    })
+    @GetMapping("/records")
+    public Result<List<SaleRecordVO>> getSaleRecords() {
+        List<SaleRecordVO> records = saleService.getSaleRecords();
+        return Result.success(records);
     }
 }

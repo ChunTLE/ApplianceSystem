@@ -13,4 +13,17 @@ public interface SaleService {
      * @return 销售记录列表
      */
     List<SaleRecordVO> getSaleRecords();
+    
+    /**
+     * 根据ID更新销售记录数量
+     * @param id 销售记录ID
+     * @param quantity 新的数量
+     */
+    void updateSale(Long id, Integer quantity);
+    
+    /**
+     * 根据ID删除销售记录
+     * @param id 销售记录ID
+     */
+    void deleteSale(Long id);
 }

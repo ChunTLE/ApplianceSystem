@@ -109,4 +109,65 @@ public class SaleServiceImpl implements SaleService {
                 .sorted((a, b) -> b.getSaleTime().compareTo(a.getSaleTime())) // 按时间倒序排列
                 .collect(Collectors.toList());
     }
+
+    @Override
+    @Transactional
+    public void updateSale(Long id, Integer quantity) {
+        // 参数校验
+        if (id == null) {
+            throw new BusinessException("销售记录ID不能为空");
+        }
+        if (quantity == null || quantity <= 0) {
+            throw new BusinessException("销售数量必须大于0");
+        }
+        
+        // 查询原记录
+        Sale originalSale = saleMapper.selectById(id);
+        if (originalSale == null) {
+            throw new BusinessException("销售记录不存在");
+        }
+        
+        // 获取产品信息以计算新的总价
+        Product product = productMapper.selectById(originalSale.getProductId());
+        if (product == null) {
+            throw new BusinessException("产品不存在");
+        }
+        
+        // 计算库存变化量
+        int diff = quantity - originalSale.getQuantity();
+        
+        // 更新库存
+        if (diff > 0) {
+            productService.decreaseStock(originalSale.getProductId(), diff);
+        } else if (diff < 0) {
+            productService.increaseStock(originalSale.getProductId(), Math.abs(diff));
+        }
+        
+        // 计算新的总价
+        BigDecimal newTotalPrice = product.getPrice().multiply(BigDecimal.valueOf(quantity));
+        
+        // 更新销售记录
+        originalSale.setQuantity(quantity);
+        originalSale.setTotalPrice(newTotalPrice);
+        saleMapper.updateById(originalSale);
+    }
+
+    @Override
+    @Transactional
+    public void deleteSale(Long id) {
+        if (id == null) {
+            throw new BusinessException("销售记录ID不能为空");
+        }
+        
+        Sale sale = saleMapper.selectById(id);
+        if (sale == null) {
+            throw new BusinessException("销售记录不存在");
+        }
+        
+        // 增加库存（因为删除销售记录相当于把销售的商品还回去）
+        productService.increaseStock(sale.getProductId(), sale.getQuantity());
+        
+        // 删除销售记录
+        saleMapper.deleteById(id);
+    }
 }

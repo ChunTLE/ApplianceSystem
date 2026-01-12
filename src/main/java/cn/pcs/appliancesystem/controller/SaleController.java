@@ -73,4 +73,54 @@ public class SaleController {
         List<SaleRecordVO> records = saleService.getSaleRecords();
         return Result.success(records);
     }
+
+    /**
+     * 修改销售记录
+     */
+    @Operation(
+            summary = "修改销售记录",
+            description = "根据ID修改销售记录的数量"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "修改成功",
+                    content = @Content(schema = @Schema(implementation = Result.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "修改失败（记录不存在、参数错误等）",
+                    content = @Content(schema = @Schema(implementation = Result.class))
+            )
+    })
+    @PutMapping("/update")
+    public Result<?> updateSale(@RequestBody cn.pcs.appliancesystem.entity.Sale sale) {
+        saleService.updateSale(sale.getId(), sale.getQuantity());
+        return Result.success();
+    }
+
+    /**
+     * 删除销售记录
+     */
+    @Operation(
+            summary = "删除销售记录",
+            description = "根据ID删除销售记录"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "删除成功",
+                    content = @Content(schema = @Schema(implementation = Result.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "删除失败（记录不存在等）",
+                    content = @Content(schema = @Schema(implementation = Result.class))
+            )
+    })
+    @DeleteMapping("/{id}")
+    public Result<?> deleteSale(@PathVariable Long id) {
+        saleService.deleteSale(id);
+        return Result.success();
+    }
 }

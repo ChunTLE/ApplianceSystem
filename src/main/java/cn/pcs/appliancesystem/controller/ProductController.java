@@ -121,4 +121,23 @@ public class ProductController {
             return Result.error("产品创建失败");
         }
     }
+
+    /**
+     * 查询所有产品（包括已下架的）
+     */
+    @Operation(
+            summary = "查询所有产品（包括已下架的）",
+            description = "获取系统中所有产品的列表信息，包括已下架的产品"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "查询成功",
+                    content = @Content(schema = @Schema(implementation = Result.class))
+            )
+    })
+    @GetMapping("/all")
+    public Result<List<Product>> all() {
+        return Result.success(productService.getAllProducts());
+    }
 }

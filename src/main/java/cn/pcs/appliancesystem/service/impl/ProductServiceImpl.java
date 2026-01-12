@@ -166,4 +166,12 @@ public class ProductServiceImpl implements ProductService {
         // 插入产品并返回是否成功
         return productMapper.insert(product) > 0;
     }
+
+    @Override
+    public List<Product> getAllProducts() {
+        List<Product> products = productMapper.selectList(null); // 查询所有产品，不限制状态
+        // 填充类型名称
+        fillTypeName(products);
+        return products;
+    }
 }

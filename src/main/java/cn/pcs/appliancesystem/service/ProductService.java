@@ -11,6 +11,12 @@ public interface ProductService {
     Product getById(Long id);
     
     List<Product> search(String productName, Long typeId);
+    
+    /**
+     * 获取所有产品（包括已下架的）
+     * @return 所有产品列表
+     */
+    List<Product> getAllProducts();
 
     void increaseStock(Long productId, Integer quantity);
 

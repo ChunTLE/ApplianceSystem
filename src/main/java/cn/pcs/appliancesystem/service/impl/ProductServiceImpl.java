@@ -25,7 +25,10 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> listAll() {
-        List<Product> products = productMapper.selectList(null);
+        // 只查询status为1（上架）的产品
+        LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Product::getStatus, 1);
+        List<Product> products = productMapper.selectList(wrapper);
         // 填充类型名称
         fillTypeName(products);
         return products;

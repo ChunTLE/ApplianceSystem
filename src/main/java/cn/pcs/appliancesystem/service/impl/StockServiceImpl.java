@@ -161,4 +161,106 @@ public class StockServiceImpl implements StockService {
                 .sorted((a, b) -> b.getOutTime().compareTo(a.getOutTime())) // 按时间倒序排列
                 .collect(Collectors.toList());
     }
+
+    @Override
+    @Transactional
+    public void updateStockIn(Long id, Integer quantity) {
+        // 参数校验
+        if (id == null) {
+            throw new BusinessException("入库记录ID不能为空");
+        }
+        if (quantity == null || quantity <= 0) {
+            throw new BusinessException("入库数量必须大于0");
+        }
+        
+        // 查询原记录
+        StockIn originalRecord = stockInMapper.selectById(id);
+        if (originalRecord == null) {
+            throw new BusinessException("入库记录不存在");
+        }
+        
+        // 计算库存变化量
+        int diff = quantity - originalRecord.getQuantity();
+        
+        // 更新库存
+        if (diff > 0) {
+            productService.increaseStock(originalRecord.getProductId(), diff);
+        } else if (diff < 0) {
+            productService.decreaseStock(originalRecord.getProductId(), Math.abs(diff));
+        }
+        
+        // 更新入库记录
+        originalRecord.setQuantity(quantity);
+        stockInMapper.updateById(originalRecord);
+    }
+
+    @Override
+    @Transactional
+    public void deleteStockIn(Long id) {
+        if (id == null) {
+            throw new BusinessException("入库记录ID不能为空");
+        }
+        
+        StockIn stockIn = stockInMapper.selectById(id);
+        if (stockIn == null) {
+            throw new BusinessException("入库记录不存在");
+        }
+        
+        // 减少库存
+        productService.decreaseStock(stockIn.getProductId(), stockIn.getQuantity());
+        
+        // 删除入库记录
+        stockInMapper.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public void updateStockOut(Long id, Integer quantity) {
+        // 参数校验
+        if (id == null) {
+            throw new BusinessException("出库记录ID不能为空");
+        }
+        if (quantity == null || quantity <= 0) {
+            throw new BusinessException("出库数量必须大于0");
+        }
+        
+        // 查询原记录
+        StockOut originalRecord = stockOutMapper.selectById(id);
+        if (originalRecord == null) {
+            throw new BusinessException("出库记录不存在");
+        }
+        
+        // 计算库存变化量
+        int diff = originalRecord.getQuantity() - quantity; // 注意这里是反向的，因为是出库
+        
+        // 更新库存
+        if (diff > 0) {
+            productService.increaseStock(originalRecord.getProductId(), diff);
+        } else if (diff < 0) {
+            productService.decreaseStock(originalRecord.getProductId(), Math.abs(diff));
+        }
+        
+        // 更新出库记录
+        originalRecord.setQuantity(quantity);
+        stockOutMapper.updateById(originalRecord);
+    }
+
+    @Override
+    @Transactional
+    public void deleteStockOut(Long id) {
+        if (id == null) {
+            throw new BusinessException("出库记录ID不能为空");
+        }
+        
+        StockOut stockOut = stockOutMapper.selectById(id);
+        if (stockOut == null) {
+            throw new BusinessException("出库记录不存在");
+        }
+        
+        // 增加库存（因为删除出库记录相当于把出库的商品还回去）
+        productService.increaseStock(stockOut.getProductId(), stockOut.getQuantity());
+        
+        // 删除出库记录
+        stockOutMapper.deleteById(id);
+    }
 }

@@ -22,4 +22,30 @@ public interface StockService {
      * @return 出库记录列表
      */
     List<StockOutRecordVO> getStockOutRecords();
+    
+    /**
+     * 根据ID更新入库记录数量
+     * @param id 入库记录ID
+     * @param quantity 新的数量
+     */
+    void updateStockIn(Long id, Integer quantity);
+    
+    /**
+     * 根据ID删除入库记录
+     * @param id 入库记录ID
+     */
+    void deleteStockIn(Long id);
+    
+    /**
+     * 根据ID更新出库记录数量
+     * @param id 出库记录ID
+     * @param quantity 新的数量
+     */
+    void updateStockOut(Long id, Integer quantity);
+    
+    /**
+     * 根据ID删除出库记录
+     * @param id 出库记录ID
+     */
+    void deleteStockOut(Long id);
 }

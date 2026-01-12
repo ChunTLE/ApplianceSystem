@@ -125,4 +125,104 @@ public class StockController {
         List<StockOutRecordVO> records = stockService.getStockOutRecords();
         return Result.success(records);
     }
+
+    /**
+     * 修改入库记录
+     */
+    @Operation(
+            summary = "修改入库记录",
+            description = "根据ID修改入库记录的数量"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "修改成功",
+                    content = @Content(schema = @Schema(implementation = Result.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "修改失败（记录不存在、参数错误等）",
+                    content = @Content(schema = @Schema(implementation = Result.class))
+            )
+    })
+    @PutMapping("/in")
+    public Result<?> updateStockIn(@RequestBody cn.pcs.appliancesystem.entity.StockIn stockIn) {
+        stockService.updateStockIn(stockIn.getId(), stockIn.getQuantity());
+        return Result.success();
+    }
+
+    /**
+     * 删除入库记录
+     */
+    @Operation(
+            summary = "删除入库记录",
+            description = "根据ID删除入库记录"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "删除成功",
+                    content = @Content(schema = @Schema(implementation = Result.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "删除失败（记录不存在等）",
+                    content = @Content(schema = @Schema(implementation = Result.class))
+            )
+    })
+    @DeleteMapping("/in/{id}")
+    public Result<?> deleteStockIn(@PathVariable Long id) {
+        stockService.deleteStockIn(id);
+        return Result.success();
+    }
+
+    /**
+     * 修改出库记录
+     */
+    @Operation(
+            summary = "修改出库记录",
+            description = "根据ID修改出库记录的数量"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "修改成功",
+                    content = @Content(schema = @Schema(implementation = Result.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "修改失败（记录不存在、参数错误等）",
+                    content = @Content(schema = @Schema(implementation = Result.class))
+            )
+    })
+    @PutMapping("/out")
+    public Result<?> updateStockOut(@RequestBody cn.pcs.appliancesystem.entity.StockOut stockOut) {
+        stockService.updateStockOut(stockOut.getId(), stockOut.getQuantity());
+        return Result.success();
+    }
+
+    /**
+     * 删除出库记录
+     */
+    @Operation(
+            summary = "删除出库记录",
+            description = "根据ID删除出库记录"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "删除成功",
+                    content = @Content(schema = @Schema(implementation = Result.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "删除失败（记录不存在等）",
+                    content = @Content(schema = @Schema(implementation = Result.class))
+            )
+    })
+    @DeleteMapping("/out/{id}")
+    public Result<?> deleteStockOut(@PathVariable Long id) {
+        stockService.deleteStockOut(id);
+        return Result.success();
+    }
 }
